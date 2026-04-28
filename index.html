@@ -156,7 +156,6 @@ input[type="number"] {
   border-radius: 6px;
 }
 
-오후 2:31 2026-04-28
 
 .skill-section .card {
   padding: 20px;   /* 20도 OK, 취향 */
@@ -565,12 +564,20 @@ function build(id){
     <div>
       <div class="input-group"><label>시작 시간</label><button onclick="setTime(${id},'start')">기록</button><span id="start${id}"></span></div>
 
-      <div class="input-group"><label>현재 레벨</label><input type="number" id="level${id}" data-key="hunt-${id}-level"></div>
-      <div class="input-group"><label>시작 경험치</label><input type="number" id="startExp${id}" data-key="hunt-${id}-startExp"></div>
-      <div class="input-group"><label>시작 메소</label><input type="number" id="startMeso${id}" data-key="hunt-${id}-startMeso"></div>
+      <div class="input-group"><label>현재 레벨</label><input type="number" id="level${id}" 
+  data-key="hunt-${id}-level"
+  oninput="saveData('hunt','${id}-level', this.value)"></div>
+      <div class="input-group"><label>시작 경험치</label><input type="number" id="startExp${id}"
+  data-key="hunt-${id}-startExp"
+  oninput="saveData('hunt','${id}-startExp', this.value)"></div>
+      <div class="input-group"><label>시작 메소</label><input type="number" id="startMeso${id}"
+  data-key="hunt-${id}-startMeso"
+  oninput="saveData('hunt','${id}-startMeso', this.value)"></div>
 
       <div class="input-group"><label>HP 물약</label>
-        <select id="hpPotion${id}">
+  <select id="hpPotion${id}"
+  data-key="hunt-${id}-hpPotion"
+  onchange="saveData('hunt','${id}-hpPotion', this.value)">
           <option value="160">주황포션</option>
           <option value="320">하얀포션</option>
           <option value="850">키노코라면</option>
@@ -579,10 +586,14 @@ function build(id){
         </select>
       </div>
 
-      <div class="input-group"><label>시작 HP 개수</label><input type="number" id="startHp${id}" data-key="hunt-${id}-startHp"></div>
+      <div class="input-group"><label>시작 HP 개수</label><input type="number" id="startHp${id}"
+  data-key="hunt-${id}-startHp"
+  oninput="saveData('hunt','${id}-startHp', this.value)"></div>
 
       <div class="input-group"><label>MP 물약</label>
-        <select id="mpPotion${id}">
+<select id="mpPotion${id}"
+  data-key="hunt-${id}-mpPotion"
+  onchange="saveData('hunt','${id}-mpPotion', this.value)">
           <option value="200">파란포션</option>
           <option value="620">마나엘릭서</option>
           <option value="1650">맑은 물</option>
@@ -590,21 +601,36 @@ function build(id){
         </select>
       </div>
 
-      <div class="input-group"><label>시작 MP 개수</label><input type="number" id="startMp${id}" data-key="hunt-${id}-startMp"></div>
+      <div class="input-group"><label>시작 MP 개수</label><input type="number" id="startMp${id}"
+  data-key="hunt-${id}-startMp"
+  oninput="saveData('hunt','${id}-startMp', this.value)"></div>
     </div>
 
     <!-- ===== 2단 (우측) ===== -->
     <div>
       <div class="input-group"><label>종료 시간</label><button onclick="setTime(${id},'end')">기록</button><span id="end${id}"></span></div>
 
-      <div class="input-group"><label>종료 경험치</label><input type="number" id="endExp${id}" data-key="hunt-${id}-endExp"></div>
-      <div class="input-group"><label>종료 메소</label><input type="number" id="endMeso${id}" data-key="hunt-${id}-endMeso"></div>
-      <div class="input-group"><label>종료 HP 개수</label><input type="number" id="endHp${id}" data-key="hunt-${id}-endHp"></div>
-      <div class="input-group"><label>종료 MP 개수</label><input type="number" id="endMp${id}" data-key="hunt-${id}-endMp"></div>
+      <div class="input-group"><label>종료 경험치</label><input type="number" id="endExp${id}"
+  data-key="hunt-${id}-endExp"
+  oninput="saveData('hunt','${id}-endExp', this.value)"></div>
+      <div class="input-group"><label>종료 메소</label><input type="number" id="endMeso${id}"
+  data-key="hunt-${id}-endMeso"
+  oninput="saveData('hunt','${id}-endMeso', this.value)"></div>
+      <div class="input-group"><label>종료 HP 개수</label><input type="number" id="endHp${id}"
+  data-key="hunt-${id}-endHp"
+  oninput="saveData('hunt','${id}-endHp', this.value)"></div>
+      <div class="input-group"><label>종료 MP 개수</label><input type="number" id="endMp${id}"
+  data-key="hunt-${id}-endMp"
+  oninput="saveData('hunt','${id}-endMp', this.value)"></div>
 
       <div class="input-group">
         <label>레벨업</label>
-        <input type="checkbox" id="levelUp${id}">
+<input 
+  type="checkbox" 
+  id="levelUp${id}" 
+  data-key="hunt-${id}-levelUp"
+  onchange="saveData('hunt','${id}-levelUp', this.checked)"
+>
       </div>
     </div>
 
@@ -632,7 +658,7 @@ function setTime(id, type){
   document.getElementById(type+id).innerText = now.toLocaleTimeString();
 
   // 🔥 추가: 서버 저장
-  saveData(`hunt-${id}-${type}`, now.toISOString());
+saveData("hunt-time", `${id}-${type}`, now.toISOString());
 }
 
 function val(id,name){
@@ -836,12 +862,18 @@ function calcRice(){
 
     <div class="card">
       <h3>메모 1</h3>
-<textarea data-key="memo-1" style="width:100%; height:200px;"></textarea>
+<textarea
+data-key="memo-1"
+oninput="saveData('memo','1', this.value)"
+style="width:100%; height:200px;"></textarea>
     </div>
 
     <div class="card">
       <h3>메모 2</h3>
-<textarea data-key="memo-2" style="width:100%; height:200px;"></textarea>
+<textarea
+data-key="memo-2"
+oninput="saveData('memo','2', this.value)"
+style="width:100%; height:200px;"></textarea>
     </div>
 
   </div>
@@ -869,6 +901,8 @@ async function loadData(){
     .select('*');
 
   data.forEach(row=>{
+
+    // 🔥 기존 input 복구
     const el = document.querySelector(`[data-key="${row.type}-${row.key}"]`);
     if(el){
       if(el.type === "checkbox"){
@@ -877,7 +911,21 @@ async function loadData(){
         el.value = row.value;
       }
     }
+
+    // 🔥 시간 복구 (여기에 추가)
+    if(row.type === "hunt-time"){
+      const [id, type] = row.key.split("-");
+
+      const date = new Date(row.value);
+      times[type + id] = date;
+
+      const span = document.getElementById(type + id);
+      if(span) span.innerText = date.toLocaleTimeString();
+    }
+
   });
+calculateStat();
+calcRice();
 }
 
 // =============================
@@ -885,52 +933,44 @@ async function loadData(){
 // =============================
 supabaseClient
   .channel('realtime')
-  .on('postgres_changes', {
-    event: '*',
-    schema: 'public',
-    table: 'shared_data'
-  }, payload => {
-    const row = payload.new;
-    const el = document.querySelector(`[data-key="${row.type}-${row.key}"]`);
-    if(el){
-      if(el.type === "checkbox"){
-        el.checked = row.value === "true";
-      }else{
-        el.value = row.value;
-      }
+ .on('postgres_changes', {
+  event: '*',
+  schema: 'public',
+  table: 'shared_data'
+}, payload => {
+  const row = payload.new;
+
+  const el = document.querySelector(`[data-key="${row.type}-${row.key}"]`);
+  if(el){
+    if(el.type === "checkbox"){
+      el.checked = row.value === "true";
+    }else{
+      el.value = row.value;
     }
-  })
+  }
+if(row.type === "stat"){
+  calculateStat();
+}
+
+if(row.type === "rice"){
+  calcRice();
+}
+
+  // 🔥 추가 (이거 핵심)
+  if(row.type === "hunt-time"){
+    const [id, type] = row.key.split("-");
+
+    const date = new Date(row.value);
+    times[type + id] = date;
+
+    const span = document.getElementById(type + id);
+    if(span) span.innerText = date.toLocaleTimeString();
+  }
+})
   .subscribe();
 
 // 최초 로드
 window.addEventListener("load", loadData);
-</script>
-<script>
-async function loadAll() {
-  const { data } = await supabaseClient
-    .from("shared_data")
-    .select("*");
-
-  data.forEach(row => {
-    const el = document.querySelector(`[data-key="${row.id}"]`);
-
-    // 일반 input
-    if (el) {
-      el.value = row.value;
-    }
-
-    // 🔥 시간 복구
-    if (row.id.includes("hunt-") && (row.id.includes("start") || row.id.includes("end"))) {
-      const [_, id, type] = row.id.split("-");
-
-      const date = new Date(row.value);
-      times[type + id] = date;
-
-      const span = document.getElementById(type + id);
-      if (span) span.innerText = date.toLocaleTimeString();
-    }
-  });
-}
 </script>
 
 </body>
