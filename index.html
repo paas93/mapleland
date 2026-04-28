@@ -1,0 +1,937 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>MapleLand</title>
+<link rel="icon" href="https://lh3.googleusercontent.com/d/1phO_60OAUePfHWPlBpb4_nduEL2aMygO" type="image/png">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+<style>
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #0f172a;
+  color: white;
+}
+
+/* ===== 헤더 ===== */
+header {
+  position: fixed;
+  top: 0;
+  width: 100%;
+  background: rgba(0,0,0,0.7);
+  backdrop-filter: blur(10px);
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  padding: 10px 20px;
+  z-index: 1000;
+}
+
+.logo {
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+/* ===== 네비 ===== */
+.nav {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  white-space: nowrap;
+  padding-right: 20px; /* 👈 핵심: 마지막 메뉴 잘림 방지 */
+}
+
+/* 스크롤바 숨기기 */
+.nav::-webkit-scrollbar {
+  display: none;
+}
+
+.nav a {
+  text-decoration: none;
+  color: white;
+  font-size: 14px;
+  padding: 6px 10px;
+  flex-shrink: 0;
+}
+
+.nav a:hover {
+  color: #38bdf8;
+}
+
+#map td, #map th {
+  border: 1px solid #334155;
+  padding: 10px;
+}
+
+#map tr:hover {
+  background: #1e293b;
+}
+
+/* ===== 섹션 ===== */
+section {
+  padding: 120px 30px;
+  min-height: 100vh;
+}
+
+/* 메인 */
+.hero {
+  background: url('https://via.placeholder.com/1920x1080') no-repeat center/cover;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+
+/* 카드 */
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 20px;
+}
+
+.card {
+  background: #1e293b;
+  padding: 20px;
+  border-radius: 15px;
+  text-decoration: none; /* 👈 밑줄 제거 */
+  color: white;          /* 👈 글자색 유지 */
+  display: block;        /* 👈 전체 클릭 가능 */
+  transition: 0.2s;
+}
+
+.card:hover {
+  transform: translateY(-5px);
+  background: #334155;
+}
+
+
+.row {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  margin-bottom: 15px;
+  flex-wrap: wrap; /* 👈 모바일 대응 */
+}
+
+.input-group {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+#huntcalc .input-group {
+  margin-bottom: 16px;
+}
+
+.input-group label {
+  margin-bottom: 5px;
+  font-weight: bold;
+}
+
+input[type="number"] {
+  width: 120px;
+  text-align: center;
+  border-radius: 8px;
+}
+
+.skill-list div {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+  font-size: 14px;
+}
+
+.skill-list img {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+}
+
+오후 2:31 2026-04-28
+
+.skill-section .card {
+  padding: 20px;   /* 20도 OK, 취향 */
+
+
+}
+
+/* 스핀 버튼 제거 */
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+}
+
+input {
+  -moz-appearance: textfield;
+}
+
+.status {
+  font-weight: bold;
+  padding: 6px 10px;
+  border-radius: 8px;
+  display: inline-block;
+  margin-top: 10px;
+}
+
+.waiting {
+  background: #1e40af;
+}
+
+.boarding {
+  background: #16a34a;
+}
+
+.closed {
+  background: #dc2626;
+}
+
+/* 입력 */
+input, textarea {
+  padding: 8px;
+  margin: 5px;
+  border-radius: 8px;
+  border: none;
+}
+
+
+button {
+  padding: 8px 15px;
+  border: none;
+  border-radius: 8px;
+  background: #38bdf8;
+  cursor: pointer;
+}
+
+/* 푸터 */
+footer {
+  text-align: center;
+  padding: 30px;
+  background: #020617;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  <h2 class="logo">MABAK</h2>
+  <nav class="nav">
+    <a href="#ext">외부사이트</a>
+    <a href="#ship">배 시간</a>
+    <a href="#skill">스킬트리</a>
+    <a href="#huntcalc">사냥 계산기</a>
+    <a href="#statcalc">부스탯 계산기</a>
+    <a href="#rice">쌀산기</a>
+    <a href="#map">사냥터</a>
+    <a href="#memo">개인 메모</a>
+  </nav>
+</header>
+
+<!-- 메인 -->
+<section class="hero">
+  <div>
+    <h1>마박의 메이플랜드</h1>
+    <p>가보자고 영차</p>
+  </div>
+</section>
+
+<!-- 외부사이트 -->
+<section id="ext">
+  <h2>외부사이트</h2>
+  <div class="cards">
+
+    <a class="card" href="https://maplestoryworlds.nexon.com/ko/play/be146ee19f5247d18c13834ec29eef09/" target="_blank">
+      🍁메이플랜드
+    </a>
+
+    <a class="card" href="https://malan-util.com/" target="_blank">
+      🛠️통합도구
+    </a>
+
+    <a class="card" href="https://mapleland.gg/" target="_blank">
+      ⚖️거래소
+    </a>
+
+    <a class="card" href="https://mapleland.gg/dressroom" target="_blank">
+      👗코디 시뮬레이터
+    </a>
+
+    <a class="card" href="https://mashop.kr/" target="_blank">
+      ⚖️자리 거래
+    </a>
+
+    <a class="card" href="https://maplelandquest.gg/quests" target="_blank">
+      📖퀘스트
+    </a>
+
+    <a class="card" href="https://maplelandin.com/" target="_blank">
+      ⚔️도파민 사냥터
+    </a>
+
+    <a class="card" href="https://xn--o80b01o9mlw3kdzc.com/" target="_blank">
+      ℹ️데이터베이스
+    </a>
+
+    <a class="card" href="https://megaphoneland.com/" target="_blank">
+      📢고확 다시보기
+    </a>
+
+    <a class="card" href="https://maple.land/" target="_blank">
+      ❗메랜 공지
+    </a>
+
+  </div>
+</section>
+
+<!-- 나머지 섹션 동일 -->
+<section id="ship">
+  <h2>배 시간</h2>
+
+  <div id="schedule" class="cards"></div>
+</section>
+
+<script>
+const supabaseClient = window.supabase.createClient(
+  "https://gjibfxoycrsgjegzmgba.supabase.co",
+  "sb_publishable_raap6rOeAPCo7M-LPXBfAg_475qV4r9"
+);
+
+
+const routes = [
+  {
+    name: "엘리니아 ↔ 오르비스",
+    interval: 15,
+    boardingWindow: { start: 5, end: 1 },
+    hasClosed: true
+  },
+  {
+    name: "오르비스 ↔ 루디 / 리프레 / 아리안트",
+    interval: 10,
+    boardingWindow: { start: 5, end: 1 },
+    hasClosed: true
+  },
+  {
+    name: "커닝시티 ↔ 뉴리프시티",
+    interval: 10,
+    boardingWindow: { start: 5, end: 1 },
+    hasClosed: true
+  },
+  {
+    name: "엘리베이터 [루디브리엄 → 아랫마을]",
+    interval: 4,
+    boardingWindow: { start: 1, end: 0 },
+    hasClosed: false
+  },
+  {
+    name: "엘리베이터 [아랫마을 → 루디브리엄]",
+    interval: 4,
+    offset: 2,
+    boardingWindow: { start: 1, end: 0 },
+    hasClosed: false
+  }
+];
+
+function updateSchedule() {
+  const now = new Date();
+  let output = "";
+
+  routes.forEach(route => {
+    const minutes = now.getMinutes();
+    let nextDeparture;
+
+    if (route.offset !== undefined) {
+      const base = route.offset;
+      nextDeparture = base + Math.ceil((minutes - base) / route.interval) * route.interval;
+    } else {
+      nextDeparture = Math.ceil(minutes / route.interval) * route.interval;
+    }
+
+    let departureTime = new Date(now);
+    departureTime.setMinutes(nextDeparture, 0, 0);
+
+    if (departureTime <= now) {
+      departureTime.setMinutes(departureTime.getMinutes() + route.interval);
+    }
+
+    let boardingStart = new Date(departureTime);
+    boardingStart.setMinutes(boardingStart.getMinutes() - route.boardingWindow.start);
+
+    let boardingEnd = new Date(departureTime);
+    boardingEnd.setMinutes(boardingEnd.getMinutes() - route.boardingWindow.end);
+
+    let statusText = "";
+    let statusClass = "";
+
+    if (now < boardingStart) {
+      const diffMs = boardingStart - now;
+      const diffMin = Math.floor(diffMs / 60000);
+      const diffSec = Math.floor((diffMs % 60000) / 1000);
+      statusText = `탑승 가능 시간까지 ${diffMin}분 ${diffSec}초`;
+      statusClass = "waiting";
+    } else if (now >= boardingStart && now < boardingEnd) {
+      const diffMs = boardingEnd - now;
+      const diffMin = Math.floor(diffMs / 60000);
+      const diffSec = Math.floor((diffMs % 60000) / 1000);
+      statusText = `탑승 가능 (${diffMin}분 ${diffSec}초 남음)`;
+      statusClass = "boarding";
+    } else {
+      if (route.hasClosed) {
+        const diffMs = departureTime - now;
+        const diffSec = Math.floor(diffMs / 1000);
+        statusText = `탑승 마감 (${diffSec}초 후 출발)`;
+        statusClass = "closed";
+      } else {
+        const diffMs = boardingStart - now + route.interval * 60000;
+        const diffMin = Math.floor(diffMs / 60000);
+        const diffSec = Math.floor((diffMs % 60000) / 1000);
+        statusText = `다음 탑승까지 ${diffMin}분 ${diffSec}초`;
+        statusClass = "waiting";
+      }
+    }
+
+    const departureStr = departureTime.toLocaleTimeString("ko-KR", {
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+
+    output += `
+      <div class="card">
+        <h3>${route.name}</h3>
+        <p class="status ${statusClass}">${statusText}</p>
+        <p style="opacity:0.7;">다음 출발: ${departureStr}</p>
+      </div>
+    `;
+  });
+
+  document.getElementById("schedule").innerHTML = output;
+}
+
+setInterval(updateSchedule, 1000);
+updateSchedule();
+</script>
+
+<section id="skill" class="skill-section">
+  <h2>스킬트리</h2>
+
+  <div class="cards">
+
+    <!-- ===== 1차 ===== -->
+    <div class="card">
+      <h3>1차</h3>
+
+      <h4>일반</h4>
+      <div class="skill-list">
+        <div><img src="https://i.namu.wiki/i/tg2bGLx_b8JchHBoD0_92JxhWbAuKgtP0CHmSiEti_15pOHkPjdWPp5_Q1rFg9I21GQtYVa8mYvcK1wkImHBYw.png">에너지볼트 1</div>
+        <div><img src="https://i.namu.wiki/i/QqRMTxcaWRRh4PWydJjEQrsYlogDndncJoE1Tr8VEx8YIriE7HmlxnepnKMksNosjzfxJesMlKsseALq6XJbNQ.png">MP 회복력 향상 5</div>
+        <div><img src="https://i.namu.wiki/i/fBxwctawYPzhUdK-eDXmlkWHbSo2WPET4NE8EGrhauMFmEO4DYKOi1VsgQvFpBd8Jrm20_FZ3NUN7GTjodrziQ.png">MP 증가량 향상 10</div>
+        <div><img src="https://i.namu.wiki/i/xNzZrP8oWkzlysPR0vVPN2Xs0uIMxTwuAS0Fuo-85S4Ov-u29DdMxPIPz8vgeGSCXxpbauWq6NpEBxxGXs7l2w.png">매직 클로 20</div>
+        <div><img src="https://i.namu.wiki/i/QqRMTxcaWRRh4PWydJjEQrsYlogDndncJoE1Tr8VEx8YIriE7HmlxnepnKMksNosjzfxJesMlKsseALq6XJbNQ.png">MP 회복력 향상 16</div>
+        <div><img src="https://i.namu.wiki/i/PaqhKw1wzdQY7rUjyufqAHyOFyzrUxrQZHgL4jaktizGeRWLOrL_lG2KuXnvJ0kSPOReERX4guTaeriUmNcMGg.png">매직 가드 20</div>
+      </div>
+
+      <h4>초기화 시</h4>
+      <div class="skill-list">
+        <div><img src="https://i.namu.wiki/i/tg2bGLx_b8JchHBoD0_92JxhWbAuKgtP0CHmSiEti_15pOHkPjdWPp5_Q1rFg9I21GQtYVa8mYvcK1wkImHBYw.png">에너지볼트 1</div>
+        <div><img src="https://i.namu.wiki/i/QqRMTxcaWRRh4PWydJjEQrsYlogDndncJoE1Tr8VEx8YIriE7HmlxnepnKMksNosjzfxJesMlKsseALq6XJbNQ.png">MP 회복력 향상 5</div>
+        <div><img src="https://i.namu.wiki/i/fBxwctawYPzhUdK-eDXmlkWHbSo2WPET4NE8EGrhauMFmEO4DYKOi1VsgQvFpBd8Jrm20_FZ3NUN7GTjodrziQ.png">MP 증가량 향상 10</div>
+        <div><img src="https://i.namu.wiki/i/QqRMTxcaWRRh4PWydJjEQrsYlogDndncJoE1Tr8VEx8YIriE7HmlxnepnKMksNosjzfxJesMlKsseALq6XJbNQ.png">MP 회복력 향상 16</div>
+        <div><img src="https://i.namu.wiki/i/Zo5TWZDRP26uGbvPLayiJsQldaeDe0On6LZRlLLIBhuBX3Jy6vavZIfWG9B-zb2dtx4iF0D3YhHZHQ9rk8cA5Q.png">매직 아머 20</div>
+        <div><img src="https://i.namu.wiki/i/PaqhKw1wzdQY7rUjyufqAHyOFyzrUxrQZHgL4jaktizGeRWLOrL_lG2KuXnvJ0kSPOReERX4guTaeriUmNcMGg.png">매직 가드 20</div>
+      </div>
+    </div>
+
+    <!-- ===== 2차 ===== -->
+    <div class="card">
+      <h3>2차</h3>
+      <div class="skill-list">
+        <div><img src="https://i.namu.wiki/i/PMT2BiR1hTG_HS2vxRIUBUCqheqt8_utDakdKNqw5ZSJQtEg89X45jh53i29aistUtwcLJZCbFwDnQMsTgurKQ.png">텔레포트 1</div>
+        <div><img src="https://i.namu.wiki/i/_duHcyt1JVvZ8ZWdGOe_Pemk-xsosKsmFnoGp8JeLukxwe_umLlVF9a-_eDi7567n7zXpdtYvyXIMJSIUHY4Jw.png">선더볼트 30</div>
+        <div><img src="https://i.namu.wiki/i/PMT2BiR1hTG_HS2vxRIUBUCqheqt8_utDakdKNqw5ZSJQtEg89X45jh53i29aistUtwcLJZCbFwDnQMsTgurKQ.png">텔레포트 20</div>
+        <div><img src="https://i.namu.wiki/i/wIRJ4OAPTmiDGiqBALDIRChBE4qCVFlESBiDOI87fvz0eLsb5ClNNAHURMqXp42WndyPdQ2uTdhnw95Cm8tt5w.png">MP이터 20</div>
+        <div><img src="https://i.namu.wiki/i/oP5eLZq-M1JTvBWiUfNQ4x_MnEsEe7KYFHAABeWPiltApTbiroCgQwsBjxsYSQTjxCf2esar8ZUBgD0R6bFRVg.png">메디테이션 20</div>
+        <div><img src="https://i.namu.wiki/i/HnJgiZvK28uGUPOZlg3Is3moqco0AZOamwH_j30vlzRW5Tcq4Jf5G89tj--HODfI7nPAGk5kSW5XEriabLxTvw.png">콜드 빔 30</div>
+        <div><img src="https://i.namu.wiki/i/D6xyr3qrQb2EQcZ4ozGlZ65ywvogePQzol7ct0oZiBcIJ9sPCeAbw7Ho1bh48qRWEW7lEBV-NOECJra3JrL_WA.png">슬로우 1</div>
+      </div>
+    </div>
+
+    <!-- ===== 3차 ===== -->
+    <div class="card">
+      <h3>3차</h3>
+      <p style="color:#38bdf8;">※ 76레벨부터 아스 사냥</p>
+
+      <div class="skill-list">
+        <div><img src="https://i.namu.wiki/i/ID46KMrzBkoE7_5z6m3fsPy088L-nu3r6bNQAfOc7pFobzwlZozWEHbcyqyjrjmN3RjvAJVnS54PmuXGWxlk8Q.png">엘리먼트 엠플리피케이션 1</div>
+        <div><img src="https://i.namu.wiki/i/aAKKdhhe1mNbsFNnRCUoX2F_uMJ6cyWkNr7fWxxqWp-Tt7mBelc84cTXZG41U8GRidVL8ABSpjtg2uho1IVaZw.png">아이스 스트라이크 29</div>
+        <div><img src="https://i.namu.wiki/i/ID46KMrzBkoE7_5z6m3fsPy088L-nu3r6bNQAfOc7pFobzwlZozWEHbcyqyjrjmN3RjvAJVnS54PmuXGWxlk8Q.png">엘리먼트 엠플리피케이션 3</div>
+        <div><img src="https://i.namu.wiki/i/xWojtl_uuHiz-JcYgDH2Rr_X4_NWHUgJlD0hYWS1V0SRuvSihIiHRgcSndhZKkfI1I8CpqaOQOjopZ39ZR2NEw.png">매직 부스터 11</div>
+        <div><img src="https://i.namu.wiki/i/aAKKdhhe1mNbsFNnRCUoX2F_uMJ6cyWkNr7fWxxqWp-Tt7mBelc84cTXZG41U8GRidVL8ABSpjtg2uho1IVaZw.png">아이스 스트라이크 30</div>
+        <div><img src="https://i.namu.wiki/i/ID46KMrzBkoE7_5z6m3fsPy088L-nu3r6bNQAfOc7pFobzwlZozWEHbcyqyjrjmN3RjvAJVnS54PmuXGWxlk8Q.png">엘리먼트 엠플리피케이션 30</div>
+        <div><img src="https://i.namu.wiki/i/xWojtl_uuHiz-JcYgDH2Rr_X4_NWHUgJlD0hYWS1V0SRuvSihIiHRgcSndhZKkfI1I8CpqaOQOjopZ39ZR2NEw.png">매직 부스터 20</div>
+        <div><img src="https://i.namu.wiki/i/BAz1eZ36YpA1XjxSR8s3ZPvRbjcVyxKu3AhLQsVsWkayObMBfslwuzg9XWMOcykYWzb0QKWgL0pDwawGYAx36w.png">씰 20</div>
+        <div><img src="https://i.namu.wiki/i/3EcFqTlVUxldop0boABtIT_PMMjtfjnNanLt_2vZw42XsixwvvQzB3T7Dx-dTz0afabt7v-5qtsFQxJ3SOWfTQ.png">파셜 레지스턴스 20</div>
+        <div><img src="https://i.namu.wiki/i/-U3vIgJ6hSvUU_Aw3uEFSw0QweopeTStd-ZSXWRzoEjfn-2cd50hZRKabkuU1etNc_WzbwBiw8BDn-zDEsY3rg.png">매직 컴포지션 30</div>
+        <div><img src="https://i.namu.wiki/i/y5g_dqGoWoO_K6fzCRlHr9m2HtjcniBpuQoq79u46_8prOaQbIdkYMzH9LTFufqybq0fLrZ5G1oIbopQ8cCbow.png">썬더 스피어 1</div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<section id="huntcalc">
+  <h2>사냥 계산기</h2>
+
+  <div class="cards" style="grid-template-columns: repeat(auto-fit, minmax(350px,1fr));">
+
+    <div class="card">
+      <h3>플레이어 1</h3>
+      <div id="calc1"></div>
+      <div id="result1"></div>
+    </div>
+
+    <div class="card">
+      <h3>플레이어 2</h3>
+      <div id="calc2"></div>
+      <div id="result2"></div>
+    </div>
+
+  </div>
+</section>
+
+<script>
+// ===== 경험치 테이블 =====
+const expTable = {
+1:15,2:34,3:57,4:92,5:135,6:372,7:560,8:840,9:1242,10:1716,
+11:2360,12:3216,13:4200,14:5460,15:7050,16:8840,17:11040,
+18:13716,19:16680,20:20216,21:24402,22:28980,23:34320,24:40512,
+25:54900,26:57210,27:63666,28:73080,29:83270,30:95700,
+31:108480,32:122760,33:138666,34:155540,35:174216,
+36:194832,37:216600,38:240550,39:266682,40:294216,
+41:324240,42:356916,43:391160,44:428280,45:468450,
+46:510420,47:555680,48:604416,49:655200,50:709716,
+51:748608,52:789631,53:832902,54:878545,55:926689,
+56:977471,57:1031036,58:1087536,59:1147132,60:1209904,
+61:1276301,62:1346242,63:1420016,64:1497832,65:1579913,
+66:1666492,67:1757185,68:1854143,69:1955750,70:2062925,
+71:2175973,72:2295216,73:2420993,74:2553663,75:2693603,
+76:2841212,77:2996910,78:3161140,79:3334370,80:3517903,
+81:3709827,82:3913127,83:4127556,84:4353756,85:4592341,
+86:4844001,87:5109452,88:5389449,89:5684790,90:5996316,
+91:6324914,92:6617519,93:7037118,94:7422752,95:7829518,
+96:8258575,97:8711144,98:9188514,99:9620440,100:10223168,
+101:10783397,102:11374327,103:11997640,104:12655110,
+105:13348610,106:14080113,107:14851703,108:15665576,
+109:16524049,110:17429566,111:18384706,112:19392187,
+113:20454878,114:21575805,115:22758159,116:24005306,
+117:25320796,118:26708375,119:28171993,120:29715818,
+121:31344244,122:33061908,123:34873700,124:36784778,
+125:38800583,126:40926854,127:43169645,128:45535341,
+129:48030677,130:50662758,131:53439077,132:56367538,
+133:59456479,134:62714694,135:66151459,136:69776558,
+137:73600313,138:77633610,139:81887931,140:86375389,
+141:91108760,142:96101520,143:101367883,144:106922842,
+145:112782213,146:118962678,147:125481832,148:132358236,
+149:139611467,150:147262175,151:155332142,152:163844343,
+153:172823012,154:182293713,155:192283408,156:202820538,
+157:213935103,158:225658746,159:238024845,160:251068606,
+161:264827165,162:279339693,163:294647508,164:310794191,
+165:327825712,166:345790561,167:364739883,168:384727628,
+169:405810702,170:428049128,171:451506220,172:476248760,
+173:502347192,174:529875818,175:558913012,176:589541445,
+177:621848316,178:655925603,179:691870326,180:729784819,
+181:769777027,182:811960808,183:856456260,184:903390063,
+185:952895838,186:1005114529,187:1060194805,188:1118293480,
+189:1179575962,190:1244216724,191:1312399800,192:1384319309,
+193:1460180007,194:1540197871,195:1624600714,196:1713628833,
+197:1807535693,198:1906588648,199:2011069705,200:2121276324
+};
+
+const times = {};
+
+function build(id){
+  document.getElementById("calc"+id).innerHTML = `
+
+  <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px;">
+
+    <!-- ===== 1단 (좌측) ===== -->
+    <div>
+      <div class="input-group"><label>시작 시간</label><button onclick="setTime(${id},'start')">기록</button><span id="start${id}"></span></div>
+
+      <div class="input-group"><label>현재 레벨</label><input type="number" id="level${id}" data-key="hunt-${id}-level"></div>
+      <div class="input-group"><label>시작 경험치</label><input type="number" id="startExp${id}" data-key="hunt-${id}-startExp"></div>
+      <div class="input-group"><label>시작 메소</label><input type="number" id="startMeso${id}" data-key="hunt-${id}-startMeso"></div>
+
+      <div class="input-group"><label>HP 물약</label>
+        <select id="hpPotion${id}">
+          <option value="160">주황포션</option>
+          <option value="320">하얀포션</option>
+          <option value="850">키노코라면</option>
+          <option value="1100">장어구이</option>
+          <option value="2300">쭈쭈바</option>
+        </select>
+      </div>
+
+      <div class="input-group"><label>시작 HP 개수</label><input type="number" id="startHp${id}" data-key="hunt-${id}-startHp"></div>
+
+      <div class="input-group"><label>MP 물약</label>
+        <select id="mpPotion${id}">
+          <option value="200">파란포션</option>
+          <option value="620">마나엘릭서</option>
+          <option value="1650">맑은 물</option>
+          <option value="4000">팥빙수</option>
+        </select>
+      </div>
+
+      <div class="input-group"><label>시작 MP 개수</label><input type="number" id="startMp${id}" data-key="hunt-${id}-startMp"></div>
+    </div>
+
+    <!-- ===== 2단 (우측) ===== -->
+    <div>
+      <div class="input-group"><label>종료 시간</label><button onclick="setTime(${id},'end')">기록</button><span id="end${id}"></span></div>
+
+      <div class="input-group"><label>종료 경험치</label><input type="number" id="endExp${id}" data-key="hunt-${id}-endExp"></div>
+      <div class="input-group"><label>종료 메소</label><input type="number" id="endMeso${id}" data-key="hunt-${id}-endMeso"></div>
+      <div class="input-group"><label>종료 HP 개수</label><input type="number" id="endHp${id}" data-key="hunt-${id}-endHp"></div>
+      <div class="input-group"><label>종료 MP 개수</label><input type="number" id="endMp${id}" data-key="hunt-${id}-endMp"></div>
+
+      <div class="input-group">
+        <label>레벨업</label>
+        <input type="checkbox" id="levelUp${id}">
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ===== 구분선 ===== -->
+  <hr style="margin:20px 0; opacity:0.3;">
+
+  <!-- ===== 버튼 중앙 ===== -->
+  <div style="text-align:center;">
+    <button onclick="calculateHunt(${id})">계산</button>
+    <button onclick="resetHunt(${id})">초기화</button>
+  </div>
+
+  `;
+}
+
+function setTime(id, type){
+  const now = new Date();
+
+  // 기존
+  times[type+id] = now;
+
+  // 화면 표시
+  document.getElementById(type+id).innerText = now.toLocaleTimeString();
+
+  // 🔥 추가: 서버 저장
+  saveData(`hunt-${id}-${type}`, now.toISOString());
+}
+
+function val(id,name){
+  return Number(document.getElementById(name+id).value)||0;
+}
+
+function calculateHunt(id){
+  const s=times["start"+id], e=times["end"+id];
+  if(!s||!e) return alert("시간 먼저 기록");
+
+  const hours=(e-s)/3600000;
+
+  const level=val(id,"level");
+  const startExp=val(id,"startExp");
+  const endExp=val(id,"endExp");
+
+  const gained=document.getElementById("levelUp"+id).checked
+    ? (expTable[level]-startExp)+endExp
+    : (endExp-startExp);
+
+  const meso=(val(id,"endMeso")-val(id,"startMeso"));
+
+  const hpUsed=val(id,"startHp")-val(id,"endHp");
+  const mpUsed=val(id,"startMp")-val(id,"endMp");
+
+  const cost = hpUsed*val(id,"hpPotion") + mpUsed*val(id,"mpPotion");
+
+  const net=meso-cost;
+
+  const expH=gained/hours;
+  const mesoH=net/hours;
+
+  const remain=expTable[level]-endExp;
+  const t=remain/expH;
+
+document.getElementById("result"+id).innerHTML = `
+  ⏱ 총 사냥시간 : ${formatTime(hours)}<br>
+  📈총 획득 경험치 : ${format(gained)} EXP<br>
+  💰총 획득 메소 : ${format(net)} 메소<br>
+  ⚡시간당 경험치 : ${format(expH)} EXP/h<br>
+  💵시간당 메소 : ${format(mesoH)} 메소/h<br>
+  🎯 ${formatTime(t)} 후 레벨업
+`;
+}
+
+function formatTime(hours){
+  if (!isFinite(hours) || hours < 0) return "0시간 0분";
+
+  const totalMinutes = Math.floor(hours * 60);
+  const h = Math.floor(totalMinutes / 60);
+  const m = totalMinutes % 60;
+
+  return `${h}시간 ${m}분`;
+}
+
+function format(num){
+  return Math.floor(num).toLocaleString();
+}
+
+function resetHunt(id){
+  document.querySelectorAll(`#calc${id} input`).forEach(i=>{
+    if(i.type==="checkbox") i.checked=false;
+    else i.value="";
+  });
+  document.getElementById("result"+id).innerHTML="";
+}
+
+build(1);
+build(2);
+</script>
+
+<section id="statcalc">
+  <h2>부스탯 계산기</h2>
+
+  <div class="cards" style="max-width:600px; margin:auto;">
+    <div class="card">
+
+      <div class="row">
+        <div class="input-group">
+          <label>현재 총 부스탯</label>
+<input type="number" id="totalStat" data-key="stat-total" oninput="calculateStat()">
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="input-group">
+          <label>아이템 장착 레벨</label>
+<input type="number" id="itemLevel" data-key="stat-level" oninput="calculateStat()">
+        </div>
+
+        <div class="input-group">
+          <label>아이템 요구 부스탯</label>
+<input type="number" id="targetStat" data-key="stat-target" oninput="calculateStat()">
+        </div>
+      </div>
+
+      <div id="statResult" style="margin-top:20px; font-weight:bold; text-align:center;">
+        결과가 여기에 표시됩니다
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<script>
+function calculateStat() {
+  const totalStat = parseFloat(document.getElementById('totalStat').value) || 0;
+  const itemLevel = parseFloat(document.getElementById('itemLevel').value) || 0;
+  const targetStat = parseFloat(document.getElementById('targetStat').value) || 0;
+
+  if (!totalStat || !itemLevel || !targetStat) {
+    document.getElementById('statResult').innerHTML = "값을 입력하세요";
+    return;
+  }
+
+  const requiredIncrease = targetStat - totalStat;
+  const levelOffset = Math.ceil(requiredIncrease / 5);
+  const resultLevel = itemLevel - levelOffset + 1;
+
+  document.getElementById('statResult').innerHTML =
+    `📌 <span style="color:#38bdf8;">${resultLevel} 레벨</span>부터 부스탯 찍기`;
+}
+</script>
+
+<section id="rice">
+  <h2>쌀산기</h2>
+
+  <div class="cards" style="max-width:500px; margin:auto;">
+    <div class="card">
+
+      <div class="input-group">
+        <label>보유 메소</label>
+<input type="number" id="meso" data-key="rice-meso" oninput="calcRice()">
+      </div>
+
+      <div class="input-group">
+        <label>AP, 펫 메소 시세 (1만단위)</label>
+<input type="number" id="price" data-key="rice-price" oninput="calcRice()">
+      </div>
+
+      <div id="riceResult" style="margin-top:20px; font-weight:bold; text-align:center;">
+        결과가 여기에 표시됩니다
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<script>
+function calcRice(){
+  const meso = Number(document.getElementById("meso").value) || 0;
+  const price = Number(document.getElementById("price").value) || 0;
+
+  if(!meso || !price){
+    document.getElementById("riceResult").innerHTML = "값을 입력하세요";
+    return;
+  }
+
+  const result = (7.5 / ((price * 10000) / 1600)) * meso;
+
+  document.getElementById("riceResult").innerHTML =
+    `💰 현금화 : <span style="color:#38bdf8;">${format(result)} 원</span>`;
+}
+</script>
+
+<section id="map">
+  <h2>사냥터</h2>
+
+  <div style="max-width:600px; margin:auto;">
+    <table style="width:100%; border-collapse:collapse; text-align:center; overflow:hidden; border-radius:10px;">
+
+      <thead style="background:#1e293b;">
+        <tr>
+          <th style="padding:10px; border:1px solid #334155;">레벨</th>
+          <th style="padding:10px; border:1px solid #334155;">사냥터</th>
+        </tr>
+      </thead>
+
+      <tbody style="background:#0f172a;">
+        <tr><td>1~8</td><td>초반 퀘스트</td></tr>
+        <tr><td>8~15</td><td>헤네시스 사냥터1</td></tr>
+        <tr><td>15~20</td><td>헤네시스 동쪽 풀숲</td></tr>
+        <tr><td>20~22</td><td>추락주의</td></tr>
+        <tr><td>22~31</td><td>빨라모아의 굴 / 개님 파퀘</td></tr>
+        <tr><td>31~35</td><td>사헬지대3</td></tr>
+        <tr><td>35~51</td><td>수정협곡 / 루디 파퀘</td></tr>
+        <tr><td>51~60</td><td>붉은 산호숲 / 얼어버린 시간2</td></tr>
+        <tr><td>60~71</td><td>C-2</td></tr>
+        <tr><td>71~96</td><td>로줄 파퀘</td></tr>
+        <tr><td>96~</td><td>하늘둥지2 / 붉은켄타로스 영역</td></tr>
+      </tbody>
+
+    </table>
+  </div>
+</section>
+
+<section id="memo">
+  <h2>개인 메모</h2>
+
+  <div class="cards" style="grid-template-columns: repeat(auto-fit, minmax(300px,1fr));">
+
+    <div class="card">
+      <h3>메모 1</h3>
+<textarea data-key="memo-1" style="width:100%; height:200px;"></textarea>
+    </div>
+
+    <div class="card">
+      <h3>메모 2</h3>
+<textarea data-key="memo-2" style="width:100%; height:200px;"></textarea>
+    </div>
+
+  </div>
+</section>
+
+<footer>
+  <p>© 2026 MABAK</p>
+</footer>
+<script>
+// =============================
+// 🔥 저장
+// =============================
+async function saveData(type, key, value){
+  await supabaseClient
+    .from('shared_data')
+    .upsert([{ type, key, value }], { onConflict: ['type','key'] });
+}
+
+// =============================
+// 🔥 불러오기
+// =============================
+async function loadData(){
+  const { data } = await supabaseClient
+    .from('shared_data')
+    .select('*');
+
+  data.forEach(row=>{
+    const el = document.querySelector(`[data-key="${row.type}-${row.key}"]`);
+    if(el){
+      if(el.type === "checkbox"){
+        el.checked = row.value === "true";
+      }else{
+        el.value = row.value;
+      }
+    }
+  });
+}
+
+// =============================
+// 🔥 실시간 반영
+// =============================
+supabaseClient
+  .channel('realtime')
+  .on('postgres_changes', {
+    event: '*',
+    schema: 'public',
+    table: 'shared_data'
+  }, payload => {
+    const row = payload.new;
+    const el = document.querySelector(`[data-key="${row.type}-${row.key}"]`);
+    if(el){
+      if(el.type === "checkbox"){
+        el.checked = row.value === "true";
+      }else{
+        el.value = row.value;
+      }
+    }
+  })
+  .subscribe();
+
+// 최초 로드
+window.addEventListener("load", loadData);
+</script>
+<script>
+async function loadAll() {
+  const { data } = await supabaseClient
+    .from("shared_data")
+    .select("*");
+
+  data.forEach(row => {
+    const el = document.querySelector(`[data-key="${row.id}"]`);
+
+    // 일반 input
+    if (el) {
+      el.value = row.value;
+    }
+
+    // 🔥 시간 복구
+    if (row.id.includes("hunt-") && (row.id.includes("start") || row.id.includes("end"))) {
+      const [_, id, type] = row.id.split("-");
+
+      const date = new Date(row.value);
+      times[type + id] = date;
+
+      const span = document.getElementById(type + id);
+      if (span) span.innerText = date.toLocaleTimeString();
+    }
+  });
+}
+</script>
+
+</body>
+</html>
