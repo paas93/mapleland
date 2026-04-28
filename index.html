@@ -720,9 +720,24 @@ function format(num){
 
 function resetHunt(id){
   document.querySelectorAll(`#calc${id} input`).forEach(i=>{
-    if(i.type==="checkbox") i.checked=false;
-    else i.value="";
+    const key = i.dataset.key?.split("-").slice(1).join("-");
+
+    if(i.type==="checkbox"){
+      i.checked=false;
+      saveData('hunt', key, false);
+    }else{
+      i.value="";
+      saveData('hunt', key, "");
+    }
   });
+
+  // 시간도 초기화
+  ["start","end"].forEach(type=>{
+    times[type+id] = null;
+    document.getElementById(type+id).innerText = "";
+    saveData("hunt-time", `${id}-${type}`, "");
+  });
+
   document.getElementById("result"+id).innerHTML="";
 }
 
